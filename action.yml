@@ -1,0 +1,33 @@
+name: 'Build Number Manager'
+description: 'Manages build numbers across repositories with automatic incrementing'
+author: 'Moonshot Partners'
+
+inputs:
+  id:
+    description: 'Unique identifier for the build number (e.g., staging-branch)'
+    required: true
+  initial_number:
+    description: 'Initial build number if the ID does not exist'
+    required: true
+    default: '1'
+  gh_repo:
+    description: 'GitHub repository in format owner/repo (e.g., moonshot-partners/build-manager)'
+    required: true
+  github_token:
+    description: 'GitHub token for repository access'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  build_number:
+    description: 'The incremented build number'
+  previous_number:
+    description: 'The previous build number before increment'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'hash'
+  color: 'blue' 

@@ -1,0 +1,42 @@
+name: Test Build Number Manager
+
+on:
+  push:
+    branches: [main, staging]
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  test-build-numbers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test Staging Build Number
+        id: staging_build
+        uses: moonshot-partners/build-number-manager@v1.0.0  # Use your published action
+        with:
+          id: staging-branch
+          initial_number: 20
+          gh_repo: ${{ github.repository }}
+
+      - name: Test Production Build Number
+        id: prod_build
+        uses: moonshot-partners/build-number-manager@v1.0.0
+        with:
+          id: production
+          initial_number: 100
+          gh_repo: ${{ github.repository }}
+
+      - name: Display Results
+        run: |
+          echo "🎯 Staging Build Number: ${{ steps.staging_build.outputs.build_number }}"
+          echo "📊 Previous Staging: ${{ steps.staging_build.outputs.previous_number }}"
+          echo ""
+          echo "🚀 Production Build Number: ${{ steps.prod_build.outputs.build_number }}"
+          echo "📊 Previous Production: ${{ steps.prod_build.outputs.previous_number }}"
+
+      - name: Simulate Build with Numbers
+        run: |
+          echo "Building staging version: myapp:staging-${{ steps.staging_build.outputs.build_number }}"
+          echo "Building production version: myapp:prod-${{ steps.prod_build.outputs.build_number }}" 
