@@ -31,6 +31,18 @@ jobs:
         run: |
           echo "Current build number: ${{ steps.build_number.outputs.build_number }}"
           echo "Previous build number: ${{ steps.build_number.outputs.previous_number }}"
+
+      - name: Build your application
+        run: |
+          # Your build commands here
+          echo "Building with number ${{ steps.build_number.outputs.build_number }}"
+          # If this step fails, the build number won't be incremented in the repo
+
+      - name: Deploy
+        run: |
+          # Your deployment commands here
+          echo "Deploying build ${{ steps.build_number.outputs.build_number }}"
+          # Only if ALL steps succeed, the build number gets saved
 ```
 
 ## How it works with your parameters:
@@ -39,12 +51,51 @@ jobs:
 2. **`initial_number: 20`** - If this is the first time running with this ID, it will start at 20
 3. **`gh_repo: moonshot-partners/build-manager`** - This is the repository where build numbers are stored
 
-## What happens:
+## What happens (NEW BEHAVIOR):
 
-1. **First run**: If `staging-branch` doesn't exist, it creates it with value 20, then outputs 21
-2. **Subsequent runs**: It reads the current value, increments by 1, saves it, and outputs the new number
-3. **Storage**: Build numbers are stored in `.github/build-numbers.json` in your repository
-4. **Automatic commit**: After incrementing, the action commits the updated numbers back to the repo
+### ✅ **Safe Increment Pattern** (like actions/cache)
+
+1. **Main Step**: Reads current number, calculates next number (current + 1), outputs it
+2. **Your Build Steps**: Use the build number for building, testing, deploying
+3. **Post Step**: **ONLY** if all previous steps succeed, saves the incremented number to repo
+
+### 🔄 **Flow Example**:
+
+```
+1. Read current number: 25
+2. Calculate next: 26
+3. Output build_number: 26
+4. Run your build steps with number 26
+5. IF all steps succeed → Save 26 to repo
+6. IF any step fails → Number 25 remains in repo (no increment)
+```
+
+### 🛡️ **Failure Protection**:
+
+```yaml
+- name: Get Build Number
+  id: build_number
+  uses: ./
+  with:
+    id: staging-branch
+    initial_number: 20
+    gh_repo: moonshot-partners/build-manager
+
+- name: Build (might fail)
+  run: |
+    npm run build
+    # If this fails, build number won't be incremented
+
+- name: Test (might fail)  
+  run: |
+    npm test
+    # If this fails, build number won't be incremented
+
+- name: Deploy (might fail)
+  run: |
+    kubectl apply -f deployment.yaml
+    # Only if ALL steps succeed, number gets saved
+```
 
 ## Example output:
 
@@ -98,12 +149,20 @@ You can use different IDs for different environments:
   run: |
     docker build -t myapp:${{ steps.build_number.outputs.build_number }} .
     docker tag myapp:${{ steps.build_number.outputs.build_number }} myapp:latest
+
+- name: Push to registry
+  run: |
+    docker push myapp:${{ steps.build_number.outputs.build_number }}
+    docker push myapp:latest
+    # Only if push succeeds, build number gets saved
 ```
 
 ## Key Features:
 
-- ✅ **Always increments**: Every run outputs current number + 1
+- ✅ **Safe increments**: Only increments if entire job succeeds
+- ✅ **Failure protection**: Failed builds don't consume build numbers
 - ✅ **Persistent storage**: Numbers are saved in your repository
-- ✅ **Automatic commits**: No manual intervention needed
+- ✅ **Automatic commits**: No manual intervention needed (post-success)
 - ✅ **Multiple environments**: Use different IDs for different purposes
-- ✅ **Thread-safe**: Uses GitHub's atomic file operations 
+- ✅ **Thread-safe**: Uses GitHub's atomic file operations
+- ✅ **Post-pattern**: Similar to actions/cache behavior

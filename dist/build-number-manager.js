@@ -49,6 +49,38 @@ class BuildNumberManager {
         this.owner = owner;
         this.repo = repo;
     }
+    async getCurrentBuildNumber(id, initialNumber) {
+        try {
+            // Get existing build numbers file
+            const buildNumbers = await this.getBuildNumbers();
+            const previousNumber = buildNumbers[id] || (initialNumber - 1);
+            const newNumber = previousNumber + 1;
+            const created = !(id in buildNumbers);
+            return {
+                previousNumber,
+                newNumber,
+                created
+            };
+        }
+        catch (error) {
+            core.error(`Error getting build number: ${error}`);
+            throw error;
+        }
+    }
+    async saveBuildNumber(id, newNumber) {
+        try {
+            // Get current build numbers
+            const buildNumbers = await this.getBuildNumbers();
+            // Update with new number
+            buildNumbers[id] = newNumber;
+            // Save updated build numbers
+            await this.saveBuildNumbers(buildNumbers);
+        }
+        catch (error) {
+            core.error(`Error saving build number: ${error}`);
+            throw error;
+        }
+    }
     async getAndIncrementBuildNumber(id, initialNumber) {
         try {
             // Try to get existing build numbers file

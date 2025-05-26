@@ -24,15 +24,22 @@ async function run(): Promise<void> {
     // Initialize build number manager
     const manager = new BuildNumberManager(githubToken, ghRepo);
 
-    // Get current build number and increment it
-    const result = await manager.getAndIncrementBuildNumber(id, initialNumber);
+    // Get current build number (without incrementing in repo yet)
+    const result = await manager.getCurrentBuildNumber(id, initialNumber);
+
+    // Save state for post action
+    core.saveState('id', id);
+    core.saveState('initial_number', initialNumber.toString());
+    core.saveState('gh_repo', ghRepo);
+    core.saveState('github_token', githubToken);
+    core.saveState('new_number', result.newNumber.toString());
 
     // Set outputs
     core.setOutput('build_number', result.newNumber.toString());
     core.setOutput('previous_number', result.previousNumber.toString());
 
     core.info(`Previous build number: ${result.previousNumber}`);
-    core.info(`New build number: ${result.newNumber}`);
+    core.info(`New build number: ${result.newNumber} (will be saved after job completion)`);
 
   } catch (error) {
     core.setFailed(error instanceof Error ? error.message : 'Unknown error occurred');

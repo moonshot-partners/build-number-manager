@@ -178,7 +178,7 @@ exports.BuildNumberManager = BuildNumberManager;
 
 /***/ }),
 
-/***/ 137:
+/***/ 7875:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -219,44 +219,32 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
 const build_number_manager_1 = __nccwpck_require__(6393);
-async function run() {
+async function post() {
     try {
-        // Get inputs
-        const id = core.getInput('id', { required: true });
-        const initialNumber = parseInt(core.getInput('initial_number', { required: true }), 10);
-        const ghRepo = core.getInput('gh_repo', { required: true });
-        const githubToken = core.getInput('github_token') || process.env.GITHUB_TOKEN;
-        if (!githubToken) {
-            throw new Error('GitHub token is required');
+        // Get saved state from main action
+        const id = core.getState('id');
+        const initialNumber = parseInt(core.getState('initial_number'), 10);
+        const ghRepo = core.getState('gh_repo');
+        const githubToken = core.getState('github_token');
+        const newNumber = parseInt(core.getState('new_number'), 10);
+        if (!id || !ghRepo || !githubToken || isNaN(initialNumber) || isNaN(newNumber)) {
+            core.info('No build number state found or invalid state. Skipping post action.');
+            return;
         }
-        if (isNaN(initialNumber)) {
-            throw new Error('initial_number must be a valid number');
-        }
-        core.info(`Managing build number for ID: ${id}`);
-        core.info(`Repository: ${ghRepo}`);
-        core.info(`Initial number: ${initialNumber}`);
+        core.info(`Post action: Saving build number ${newNumber} for ID: ${id}`);
         // Initialize build number manager
         const manager = new build_number_manager_1.BuildNumberManager(githubToken, ghRepo);
-        // Get current build number (without incrementing in repo yet)
-        const result = await manager.getCurrentBuildNumber(id, initialNumber);
-        // Save state for post action
-        core.saveState('id', id);
-        core.saveState('initial_number', initialNumber.toString());
-        core.saveState('gh_repo', ghRepo);
-        core.saveState('github_token', githubToken);
-        core.saveState('new_number', result.newNumber.toString());
-        // Set outputs
-        core.setOutput('build_number', result.newNumber.toString());
-        core.setOutput('previous_number', result.previousNumber.toString());
-        core.info(`Previous build number: ${result.previousNumber}`);
-        core.info(`New build number: ${result.newNumber} (will be saved after job completion)`);
+        // Save the incremented build number to repository
+        await manager.saveBuildNumber(id, newNumber);
+        core.info(`✅ Build number ${newNumber} successfully saved to repository`);
     }
     catch (error) {
-        core.setFailed(error instanceof Error ? error.message : 'Unknown error occurred');
+        core.warning(`Failed to save build number: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Don't fail the entire workflow if post action fails
     }
 }
-run();
-//# sourceMappingURL=index.js.map
+post();
+//# sourceMappingURL=post.js.map
 
 /***/ }),
 
@@ -32039,7 +32027,7 @@ module.exports = parseParams
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(137);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7875);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

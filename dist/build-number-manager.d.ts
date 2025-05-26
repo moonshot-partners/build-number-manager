@@ -9,6 +9,8 @@ export declare class BuildNumberManager {
     private repo;
     private buildNumbersPath;
     constructor(githubToken: string, repository: string);
+    getCurrentBuildNumber(id: string, initialNumber: number): Promise<BuildNumberResult>;
+    saveBuildNumber(id: string, newNumber: number): Promise<void>;
     getAndIncrementBuildNumber(id: string, initialNumber: number): Promise<BuildNumberResult>;
     private getBuildNumbers;
     private saveBuildNumbers;

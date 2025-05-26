@@ -4,11 +4,12 @@ A GitHub Action that manages build numbers across repositories with automatic in
 
 ## Features
 
-- 🔢 **Automatic Build Number Management**: Automatically increments build numbers for different environments/branches
+- 🔢 **Safe Build Number Management**: Automatically increments build numbers only on successful builds
 - 💾 **Persistent Storage**: Stores build numbers in your repository using a JSON file
 - 🔄 **Atomic Operations**: Ensures build numbers are always incremented safely
 - 🏷️ **Multiple Identifiers**: Support for multiple build number sequences (e.g., staging, production, feature branches)
-- 📝 **Automatic Commits**: Automatically commits updated build numbers back to the repository
+- 📝 **Post-Success Commits**: Only commits incremented numbers after successful workflow completion
+- 🛡️ **Failure Protection**: Failed builds don't consume build numbers (similar to actions/cache pattern)
 
 ## Usage
 
@@ -102,9 +103,10 @@ jobs:
 
 1. **Initialization**: When first run with a new `id`, creates a build numbers file at `.github/build-numbers.json`
 2. **Retrieval**: Reads the current build number for the specified `id`
-3. **Increment**: Adds 1 to the current number (or uses `initial_number` if the `id` doesn't exist)
-4. **Persistence**: Commits the updated build numbers back to the repository
-5. **Output**: Returns both the new build number and the previous number
+3. **Increment**: Calculates next number (current + 1) and outputs it
+4. **Build Process**: Your workflow uses the build number for building, testing, deploying
+5. **Post Action**: **ONLY** if all workflow steps succeed, commits the incremented number to the repository
+6. **Failure Protection**: If any step fails, the build number remains unchanged in the repository
 
 ## Build Numbers File Structure
 
