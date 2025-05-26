@@ -29,11 +29,11 @@ jobs:
       
       - name: Get Build Number
         id: build_number
-        uses: ./
+        uses: moonshot-partners/build-number-manager@v1.0.0
         with:
           id: staging-branch
           initial_number: 20
-          gh_repo: moonshot-partners/build-manager
+          gh_repo: moonshot-partners/build-manager # repo where the action will store the state
           # Optional: Use Personal Access Token instead of default github.token
           # github_token: ${{ secrets.MY_GITHUB_PAT }}
           
