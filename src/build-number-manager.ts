@@ -32,9 +32,19 @@ export class BuildNumberManager {
       // Get existing build numbers file
       const buildNumbers = await this.getBuildNumbers();
       
-      const previousNumber = buildNumbers[id] || (initialNumber - 1);
-      const newNumber = previousNumber + 1;
       const created = !(id in buildNumbers);
+      let previousNumber: number;
+      let newNumber: number;
+      
+      if (created) {
+        // First time: previous should be initial_number, new should be initial_number + 1
+        previousNumber = initialNumber;
+        newNumber = initialNumber + 1;
+      } else {
+        // Subsequent times: previous is the stored value, new is previous + 1
+        previousNumber = buildNumbers[id];
+        newNumber = previousNumber + 1;
+      }
 
       return {
         previousNumber,
@@ -70,9 +80,19 @@ export class BuildNumberManager {
       // Try to get existing build numbers file
       const buildNumbers = await this.getBuildNumbers();
       
-      const previousNumber = buildNumbers[id] || (initialNumber - 1);
-      const newNumber = previousNumber + 1;
       const created = !(id in buildNumbers);
+      let previousNumber: number;
+      let newNumber: number;
+      
+      if (created) {
+        // First time: previous should be initial_number, new should be initial_number + 1
+        previousNumber = initialNumber;
+        newNumber = initialNumber + 1;
+      } else {
+        // Subsequent times: previous is the stored value, new is previous + 1
+        previousNumber = buildNumbers[id];
+        newNumber = previousNumber + 1;
+      }
 
       // Update build numbers
       buildNumbers[id] = newNumber;

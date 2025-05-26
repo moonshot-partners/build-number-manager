@@ -34,6 +34,8 @@ jobs:
           id: staging-branch
           initial_number: 20
           gh_repo: moonshot-partners/build-manager
+          # Optional: Use Personal Access Token instead of default github.token
+          # github_token: ${{ secrets.MY_GITHUB_PAT }}
           
       - name: Use Build Number
         run: |
@@ -41,47 +43,7 @@ jobs:
           echo "Previous Number: ${{ steps.build_number.outputs.previous_number }}"
 ```
 
-### Advanced Example with Multiple Environments
 
-```yaml
-name: Multi-Environment Build
-on:
-  push:
-    branches: [main, staging, develop]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Determine Environment
-        id: env
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "env_id=production" >> $GITHUB_OUTPUT
-            echo "initial=100" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            echo "env_id=staging" >> $GITHUB_OUTPUT
-            echo "initial=20" >> $GITHUB_OUTPUT
-          else
-            echo "env_id=development" >> $GITHUB_OUTPUT
-            echo "initial=1" >> $GITHUB_OUTPUT
-          fi
-          
-      - name: Get Build Number
-        id: build_number
-        uses: ./
-        with:
-          id: ${{ steps.env.outputs.env_id }}
-          initial_number: ${{ steps.env.outputs.initial }}
-          gh_repo: ${{ github.repository }}
-          
-      - name: Build Application
-        run: |
-          echo "Building with build number: ${{ steps.build_number.outputs.build_number }}"
-          # Your build commands here
-```
 
 ## Inputs
 
@@ -90,7 +52,7 @@ jobs:
 | `id` | Unique identifier for the build number (e.g., `staging-branch`, `production`) | ✅ | - |
 | `initial_number` | Initial build number if the ID doesn't exist | ✅ | `1` |
 | `gh_repo` | GitHub repository in format `owner/repo` | ✅ | - |
-| `github_token` | GitHub token for repository access | ❌ | `${{ github.token }}` |
+| `github_token` | GitHub token for repository access. Use Personal Access Token if you need custom permissions | ❌ | `${{ github.token }}` |
 
 ## Outputs
 
@@ -98,6 +60,20 @@ jobs:
 |--------|-------------|
 | `build_number` | The incremented build number |
 | `previous_number` | The previous build number before increment |
+
+## Initial Number Behavior
+
+When using the action for the first time with a new `id`:
+
+- **`previous_number`**: Will be set to the `initial_number` value
+- **`build_number`**: Will be set to `initial_number + 1`
+
+**Example**: If you set `initial_number: 50` for a new ID:
+- First run: `previous_number = 50`, `build_number = 51`
+- Second run: `previous_number = 51`, `build_number = 52`
+- And so on...
+
+This ensures that the first actual build uses `initial_number + 1`, while still providing a meaningful previous number for reference.
 
 ## How It Works
 
