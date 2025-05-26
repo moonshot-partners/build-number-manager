@@ -29,7 +29,7 @@ jobs:
       
       - name: Get Build Number
         id: build_number
-        uses: moonshot-partners/build-number-manager@v1.0.0
+        uses: moonshot-partners/build-number-manager@v1.0.2
         with:
           id: staging-branch
           initial_number: 20
