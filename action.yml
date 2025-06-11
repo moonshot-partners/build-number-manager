@@ -17,6 +17,10 @@ inputs:
     description: 'GitHub token for repository access'
     required: false
     default: ${{ github.token }}
+  only_increment_after_finish:
+    description: 'If true, only increment build number after successful workflow completion. If false, increment immediately.'
+    required: false
+    default: 'true'
 
 outputs:
   build_number:

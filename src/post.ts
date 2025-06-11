@@ -3,6 +3,14 @@ import { BuildNumberManager } from './build-number-manager';
 
 async function post(): Promise<void> {
   try {
+    // Check if we should run the post action
+    const onlyIncrementAfterFinish = core.getState('only_increment_after_finish');
+    
+    if (onlyIncrementAfterFinish !== 'true') {
+      core.info('Build number was incremented immediately, skipping post action.');
+      return;
+    }
+
     // Get saved state from main action
     const id = core.getState('id');
     const initialNumber = parseInt(core.getState('initial_number'), 10);
